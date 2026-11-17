@@ -1,0 +1,848 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Describe Town</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout concept: a sticker-style cartoon town. One white card per screen, thick ink outlines, hard offset shadows, and human-like cartoon neighbours drawn in SVG. */
+:root{
+  --sky:#CDE9FF; --paper:#FFFFFF; --ink:#26304A; --ink-soft:#56627F;
+  --sun:#FFC83D; --sun-soft:#FFF0BF; --coral:#FF6B5B; --coral-soft:#FFE0DB;
+  --mint:#2FB67F; --mint-soft:#D5F5E6; --blue:#3C7BFF; --blue-soft:#DCE8FF; --grass:#8ED081;
+  --f-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--sky); color:var(--ink); font:500 16px/1.5 var(--f-body);
+  padding-block:14px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  min-height:100%; overflow-x:hidden;
+}
+h1,h2,h3{font-family:var(--f-display);line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,6vw,2.8rem);font-weight:800}
+h2{font-size:1.5rem;font-weight:800}
+p{margin:0}
+button{font-family:inherit}
+:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+
+#backdrop{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.town{position:absolute;left:0;right:0;bottom:0;width:100%;height:190px}
+.cloud{position:absolute;left:0;width:150px;animation:drift 110s linear infinite}
+.cloud.c1{top:5%}
+.cloud.c2{top:17%;width:105px;animation-duration:150s;animation-delay:-70s}
+@keyframes drift{from{transform:translateX(-220px)}to{transform:translateX(calc(100vw + 220px))}}
+
+.wrap{position:relative;z-index:1;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;font:800 1.6rem var(--f-display);color:var(--ink);cursor:pointer}
+.brand svg{width:42px;height:42px}
+.tools{display:flex;align-items:center;gap:10px}
+.pill{font:800 1rem var(--f-display);background:var(--sun);border:3px solid var(--ink);border-radius:999px;padding:3px 16px;box-shadow:0 3px 0 var(--ink)}
+
+.btn{font:800 1.1rem/1 var(--f-display);display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 22px;color:var(--ink);background:var(--sun);border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 var(--ink);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn.ghost{background:var(--paper)}
+.btn.mint{background:var(--mint-soft)}
+.btn.big{min-height:54px;font-size:1.2rem;padding:12px 26px}
+.btn.small{min-height:40px;padding:6px 14px;font-size:.95rem;box-shadow:0 3px 0 var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn svg{width:22px;height:22px;flex:none}
+
+.card{background:var(--paper);border:3px solid var(--ink);border-radius:24px;box-shadow:0 7px 0 var(--ink);padding:20px;min-width:0}
+.eyebrow{font:800 .85rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.lead{color:var(--ink-soft);font-weight:700}
+
+.portrait{background:var(--bg,#fff);border:3px solid var(--ink);border-radius:20px;overflow:hidden}
+.portrait svg{display:block;width:100%;height:auto}
+.portrait.sil svg{filter:brightness(0) contrast(1.1)}
+.portrait svg{transition:filter .5s}
+.bob{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.bob .eyes{transform-box:fill-box;transform-origin:center;animation:blink 5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+
+/* Word bank */
+.hero{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+.mascot{display:flex;flex-direction:column;gap:14px;align-items:center;position:sticky;top:12px}
+.bubble{position:relative;background:var(--sun-soft);border:3px solid var(--ink);border-radius:18px;padding:12px 14px;font-weight:800;font-size:.95rem}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-13px;width:20px;height:20px;background:var(--sun-soft);border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+.mascot .portrait{width:180px;max-width:100%}
+.bank{display:flex;flex-direction:column;gap:16px;min-width:0}
+.group h3{font-size:1.05rem;margin-bottom:8px;color:var(--ink-soft)}
+.wchips{display:flex;flex-wrap:wrap;gap:10px}
+.wchip{display:inline-flex;align-items:center;gap:8px;font:800 1.05rem var(--f-display);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:7px 12px;box-shadow:0 3px 0 var(--ink);cursor:pointer;color:var(--ink);min-height:44px}
+.wchip:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.wchip .dot{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--ink);flex:none}
+.wchip svg{width:20px;height:20px;flex:none}
+.wchip .spk{width:16px;height:16px;opacity:.55}
+.frames{background:var(--blue-soft);border:3px solid var(--ink);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.frames h3{font-size:1.05rem}
+.frame{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:8px 12px;text-align:left;font:700 1rem var(--f-body);color:var(--ink);cursor:pointer;width:100%}
+.frame svg{width:18px;height:18px;flex:none;opacity:.6}
+
+/* Paths */
+.paths-head{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.paths{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.pathcard{display:flex;flex-direction:column;gap:12px;align-items:flex-start;text-align:left;font:inherit;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:22px;box-shadow:0 6px 0 var(--ink);padding:18px;cursor:pointer;transition:transform .1s,box-shadow .1s}
+.pathcard:hover{transform:translateY(-2px);box-shadow:0 8px 0 var(--ink)}
+.pathcard:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.pathcard.visual{background:var(--blue-soft)}
+.pathcard.audio{background:var(--coral-soft)}
+.pathcard .ico{width:64px;height:64px;border:3px solid var(--ink);border-radius:18px;background:var(--paper);display:grid;place-items:center;color:var(--ink)}
+.pathcard .ico svg{width:40px;height:40px}
+.pathcard h3{font-size:1.5rem}
+.pathcard ul{margin:0;padding-left:20px;font-weight:700;color:var(--ink-soft)}
+.pathcard .go{margin-top:auto}
+
+/* Rounds */
+.round{display:flex;flex-direction:column;gap:14px}
+.lvlbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.lvlbar b{font:800 1.3rem var(--f-display)}
+.tag{display:inline-block;font:800 .85rem var(--f-display);border:2.5px solid var(--ink);border-radius:999px;padding:1px 10px;margin-right:6px;vertical-align:middle}
+.tag.visual{background:var(--blue-soft)}
+.tag.audio{background:var(--coral-soft)}
+.rc{font:800 .95rem var(--f-display);color:var(--ink-soft)}
+.pips{display:flex;gap:5px}
+.pips i{flex:1;height:10px;border-radius:6px;border:2.5px solid var(--ink);background:var(--paper)}
+.pips i.on{background:var(--mint)}
+.pips i.cur{background:var(--sun)}
+.instr{font-weight:800}
+
+.audio-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bars{display:inline-flex;align-items:flex-end;gap:4px;height:30px;margin-left:4px}
+.bars i{width:6px;height:8px;border-radius:3px;background:var(--coral);border:2px solid var(--ink)}
+.audio-row.speaking .bars i{animation:wave .6s ease-in-out infinite}
+.audio-row.speaking .bars i:nth-child(2){animation-delay:.1s}
+.audio-row.speaking .bars i:nth-child(3){animation-delay:.2s}
+.audio-row.speaking .bars i:nth-child(4){animation-delay:.3s}
+.audio-row.speaking .bars i:nth-child(5){animation-delay:.4s}
+@keyframes wave{50%{height:28px}}
+.transcript{background:var(--sun-soft);border:2.5px dashed var(--ink);border-radius:14px;padding:10px 14px}
+.transcript b{font:800 .9rem var(--f-display);color:var(--ink-soft)}
+.transcript p{font-weight:700;margin-top:2px}
+
+.grid4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (min-width:760px){.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.opt{display:flex;flex-direction:column;gap:6px;background:none;border:0;padding:0;cursor:pointer;color:var(--ink);font:inherit;min-width:0}
+.opt .portrait{box-shadow:0 4px 0 var(--ink);transition:transform .1s}
+.opt:hover:not(:disabled) .portrait{transform:translateY(-3px)}
+.opt:disabled{cursor:default}
+.opt.bad{opacity:.4}
+.opt.bad .portrait{background:var(--coral-soft)}
+.opt.good .portrait{outline:5px solid var(--mint);outline-offset:2px}
+.opt .nm{font:800 1.05rem var(--f-display);text-align:center;min-height:1.3em}
+
+.duo{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:center}
+.mystery{display:flex;flex-direction:column;gap:6px;align-items:center}
+.mystery .portrait{width:100%}
+.nm.big{font:800 1.2rem var(--f-display)}
+.duo .side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.sentence{font:800 clamp(1.3rem,4.5vw,1.8rem)/1.35 var(--f-display)}
+.blank{display:inline-block;min-width:5.5ch;border-bottom:4px solid var(--ink);text-align:center;margin:0 4px;color:var(--mint)}
+.blank.filled{border-bottom-color:var(--mint)}
+.statement{font:800 clamp(1.3rem,4.5vw,1.8rem)/1.35 var(--f-display);background:var(--blue-soft);border:3px solid var(--ink);border-radius:16px;padding:14px 16px}
+.choices{display:flex;flex-wrap:wrap;gap:12px}
+
+.chip{font:800 1.05rem var(--f-display);color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:8px 14px;min-height:46px;box-shadow:0 3px 0 var(--ink);cursor:pointer}
+.chip:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.chip.big{font-size:1.25rem;padding:10px 20px;min-height:52px}
+.chip.sel{background:var(--sun)}
+.chip.ok{background:var(--mint-soft);border-color:var(--ink);box-shadow:0 3px 0 var(--mint)}
+.chip.no{background:var(--coral-soft);animation:shake .4s}
+.chip.bad{opacity:.4;background:var(--coral-soft)}
+.chip.good{background:var(--mint-soft);box-shadow:0 3px 0 var(--mint)}
+.chip:disabled{cursor:default}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:18px;align-items:start}
+.split .portrait{max-width:360px;margin:0 auto;width:100%}
+.split .col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.pool{display:flex;flex-wrap:wrap;gap:10px}
+.label{font:800 .9rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft)}
+.mk{cursor:pointer}
+.mk line{stroke:#26304A;stroke-width:2.5;stroke-dasharray:5 4}
+.mk circle.pt{fill:#26304A}
+.mk circle.bubble{fill:#FFFFFF;stroke:#26304A;stroke-width:3}
+.mk text{font-family:'Baloo 2','Trebuchet MS',sans-serif;font-weight:800;font-size:17px;fill:#26304A;pointer-events:none}
+.mk.set circle.bubble{fill:#FFC83D}
+.mk.ok circle.bubble{fill:#D5F5E6;stroke:#2FB67F}
+.mk.no circle.bubble{fill:#FFE0DB}
+.slots{display:grid;gap:8px}
+.slot{display:flex;align-items:center;gap:10px;text-align:left;font:700 1rem var(--f-body);color:var(--ink);background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:6px 10px;min-height:44px;cursor:pointer;width:100%}
+.slot b{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;border:2.5px solid var(--ink);background:var(--sun-soft);font:800 .95rem var(--f-display)}
+.slot.filled{background:var(--sun-soft)}
+.slot.ok{background:var(--mint-soft)}
+.slot.no{background:var(--coral-soft)}
+.slot:disabled{cursor:default}
+
+.clue{font:700 clamp(1.1rem,3.6vw,1.35rem)/1.5 var(--f-body);background:var(--sun-soft);border:3px solid var(--ink);border-radius:16px;padding:14px 16px}
+
+.feedback{border:3px solid var(--ink);border-radius:14px;padding:10px 14px;font-weight:800}
+.feedback.good{background:var(--mint-soft)}
+.feedback.bad{background:var(--coral-soft)}
+.feedback.info{background:var(--blue-soft)}
+.feedback .pts{display:inline-block;margin-left:6px;background:var(--sun);border:2.5px solid var(--ink);border-radius:999px;padding:0 10px;font:800 .9rem var(--f-display)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:2px}
+
+/* Results */
+.results{display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center}
+.stars{display:flex;gap:6px}
+.stars svg{width:64px;height:64px}
+.big-score{font:800 3rem/1 var(--f-display)}
+.break{list-style:none;margin:0;padding:0;width:100%;max-width:460px;display:grid;gap:8px}
+.break li{display:flex;justify-content:space-between;gap:12px;background:var(--sun-soft);border:2.5px solid var(--ink);border-radius:12px;padding:8px 14px;font-weight:800}
+.results .actions{justify-content:center}
+
+@media (max-width:700px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .mascot{position:static}
+  .paths{grid-template-columns:minmax(0,1fr)}
+  .duo{grid-template-columns:minmax(0,1fr)}
+  .mystery .portrait{max-width:150px}
+  .split{grid-template-columns:minmax(0,1fr)}
+  .card{padding:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .cloud.c1{left:12%}.cloud.c2{left:62%}
+}
+</style>
+
+<div id="backdrop" aria-hidden="true">
+  <svg class="cloud c1" viewBox="0 0 120 50"><path d="M20 44a14 14 0 0 1 2-28 20 20 0 0 1 38-4 16 16 0 0 1 30 8 12 12 0 0 1 6 24z" fill="#fff"/></svg>
+  <svg class="cloud c2" viewBox="0 0 120 50"><path d="M20 44a14 14 0 0 1 2-28 20 20 0 0 1 38-4 16 16 0 0 1 30 8 12 12 0 0 1 6 24z" fill="#fff"/></svg>
+  <svg class="town" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice">
+    <rect x="0" y="168" width="1200" height="32" fill="#8ED081"/>
+    <g stroke="#26304A" stroke-width="3" stroke-linejoin="round">
+      <rect x="40" y="108" width="110" height="60" fill="#FFD9A8"/><polygon points="30,110 95,60 160,110" fill="#FF6B5B"/><rect x="82" y="134" width="26" height="34" fill="#fff"/>
+      <rect x="210" y="94" width="90" height="74" fill="#CDEBD8"/><polygon points="200,96 255,52 310,96" fill="#3C7BFF"/><rect x="236" y="130" width="22" height="38" fill="#fff"/>
+      <rect x="380" y="118" width="120" height="50" fill="#FFF0BF"/><polygon points="370,120 440,74 510,120" fill="#9B8CFF"/>
+      <circle cx="570" cy="128" r="30" fill="#5BC87A"/><rect x="565" y="148" width="10" height="20" fill="#9A6B3F"/>
+      <circle cx="660" cy="134" r="24" fill="#5BC87A"/><rect x="655" y="150" width="10" height="18" fill="#9A6B3F"/>
+      <rect x="730" y="100" width="100" height="68" fill="#FFD0DA"/><polygon points="720,102 780,56 840,102" fill="#FFC83D"/><rect x="768" y="132" width="24" height="36" fill="#fff"/>
+      <rect x="900" y="116" width="110" height="52" fill="#DCE8FF"/><polygon points="890,118 955,72 1020,118" fill="#2FB67F"/>
+      <rect x="1070" y="96" width="90" height="72" fill="#FFE0B8"/><polygon points="1060,98 1115,54 1170,98" fill="#FF6B5B"/><rect x="1102" y="130" width="22" height="38" fill="#fff"/>
+    </g>
+  </svg>
+</div>
+
+<div class="wrap">
+  <header class="topbar">
+    <button class="brand" data-a="bank" aria-label="Kembali ke daftar kata">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 8h36a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H26l-9 9v-9H6a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z" fill="#FFC83D" stroke="#26304A" stroke-width="3" stroke-linejoin="round"/><circle cx="14" cy="21" r="3" fill="#26304A"/><circle cx="24" cy="21" r="3" fill="#26304A"/><circle cx="34" cy="21" r="3" fill="#26304A"/></svg>
+      <span>Describe Town</span>
+    </button>
+    <div class="tools">
+      <span class="pill" id="scorePill" hidden>Skor <b id="scoreNum">0</b></span>
+      <button class="btn small ghost" id="swapBtn" data-a="paths" hidden>Ganti jalur</button>
+    </div>
+  </header>
+  <main id="stage" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const INK = '#26304A';
+
+/* ---------- characters ---------- */
+const HAIR = {blonde:'#F4C542', black:'#2A2A35', brown:'#7A4B2A', red:'#D2522B'};
+const HAIR_DARK = {blonde:'#C99A1E', black:'#14141A', brown:'#53301A', red:'#9E3519'};
+const EYE = {blue:'#3C8FE0', brown:'#6A3D1C', green:'#3DAA6A'};
+const SKINS = [{s:'#FBD9BD', d:'#E2A57C'}, {s:'#F2C29A', d:'#CE9068'}, {s:'#D59E6E', d:'#A96D43'}, {s:'#A96E45', d:'#7C4727'}];
+
+const CHARS = {
+  rina:  {name:'Rina',  g:'f', hair:'blonde', style:'curly',    eyes:'blue',  nose:'pointed', glasses:true,  skin:0, shirt:'#FF7A8A', bg:'#FFE9EC'},
+  maya:  {name:'Maya',  g:'f', hair:'blonde', style:'straight', eyes:'blue',  nose:'round',   glasses:false, skin:1, shirt:'#5BC8A8', bg:'#DDF5EC'},
+  sari:  {name:'Sari',  g:'f', hair:'brown',  style:'curly',    eyes:'blue',  nose:'pointed', glasses:true,  skin:2, shirt:'#FFB547', bg:'#FFF1D6'},
+  putri: {name:'Putri', g:'f', hair:'blonde', style:'curly',    eyes:'brown', nose:'pointed', glasses:true,  skin:1, shirt:'#9B8CFF', bg:'#ECE8FF'},
+  dimas: {name:'Dimas', g:'m', hair:'black',  style:'short',    eyes:'brown', nose:'round',   glasses:false, skin:2, shirt:'#3C8FE0', bg:'#DDEEFF'},
+  bima:  {name:'Bima',  g:'m', hair:'red',    style:'short',    eyes:'green', nose:'pointed', glasses:true,  skin:0, shirt:'#34A87B', bg:'#DDF3E8'},
+  andi:  {name:'Andi',  g:'m', hair:'brown',  style:'short',    eyes:'blue',  nose:'round',   glasses:false, skin:1, shirt:'#F26B5B', bg:'#FFE3DD'},
+  tono:  {name:'Tono',  g:'m', hair:'black',  style:'curly',    eyes:'brown', nose:'pointed', glasses:true,  skin:3, shirt:'#6D7CFF', bg:'#E3E6FF'}
+};
+Object.keys(CHARS).forEach(k => { CHARS[k].id = k; });
+
+function portrait(ch, o) {
+  o = o || {};
+  const hc = HAIR[ch.hair], hd = HAIR_DARK[ch.hair], sk = SKINS[ch.skin];
+  let back = '', locks = '', front = '';
+  if (ch.style === 'curly') {
+    for (let t = 195; t >= -15; t -= 15) {
+      const r = t * Math.PI / 180;
+      back += '<circle cx="' + (100 + 57 * Math.cos(r)).toFixed(1) + '" cy="' + (102 - 57 * Math.sin(r)).toFixed(1) + '" r="21" fill="' + hc + '" stroke="' + hd + '" stroke-width="3"/>';
+    }
+    [66, 84, 102, 120, 138].forEach((x, i) => {
+      front += '<circle cx="' + x + '" cy="' + (i % 2 ? 68 : 64) + '" r="15" fill="' + hc + '" stroke="' + hd + '" stroke-width="3"/>';
+    });
+  } else {
+    if (ch.style === 'straight') {
+      back = '<path d="M46 100C40 56 72 36 100 36s60 20 54 64l8 96H38z" fill="' + hc + '" stroke="' + hd + '" stroke-width="3" stroke-linejoin="round"/>';
+      locks = '<path d="M50 96C44 130 46 164 44 192h24c-4-30-2-60-2-92z" fill="' + hc + '" stroke="' + hd + '" stroke-width="3" stroke-linejoin="round"/>' +
+              '<path d="M150 96C156 130 154 164 156 192h-24c4-30 2-60 2-92z" fill="' + hc + '" stroke="' + hd + '" stroke-width="3" stroke-linejoin="round"/>';
+    }
+    front = '<path d="M52 104C44 60 74 42 100 42s56 18 48 62c-6-18-14-28-28-32-10 10-30 10-40 0-14 4-22 14-28 32z" fill="' + hc + '" stroke="' + hd + '" stroke-width="3" stroke-linejoin="round"/>';
+  }
+  const eye = (cx) =>
+    '<ellipse cx="' + cx + '" cy="108" rx="11" ry="12" fill="#fff" stroke="' + INK + '" stroke-width="2.5"/>' +
+    '<circle cx="' + cx + '" cy="109" r="7.2" fill="' + EYE[ch.eyes] + '"/>' +
+    '<circle cx="' + cx + '" cy="109" r="3.6" fill="#1B1B22"/>' +
+    '<circle cx="' + (cx + 2.5) + '" cy="105.5" r="2.2" fill="#fff"/>';
+  const nose = ch.nose === 'round'
+    ? '<circle cx="100" cy="127" r="7.5" fill="' + sk.d + '"/>'
+    : '<path d="M100 113L88 135Q100 142 112 135z" fill="' + sk.d + '" stroke="' + sk.d + '" stroke-width="3" stroke-linejoin="round"/>';
+  const glasses = ch.glasses
+    ? '<g fill="none" stroke="' + INK + '" stroke-width="3.5" stroke-linecap="round"><circle cx="80" cy="108" r="16" fill="#fff" fill-opacity=".3"/><circle cx="120" cy="108" r="16" fill="#fff" fill-opacity=".3"/><path d="M96 106Q100 101 104 106"/><path d="M64 106L53 103"/><path d="M136 106L147 103"/></g>'
+    : '';
+  let svg = '<svg viewBox="' + (o.ext ? '-40 0 280 240' : '0 0 200 240') + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="' + esc(o.label || 'Karakter kartun') + '">' +
+    back +
+    '<rect x="86" y="146" width="28" height="36" rx="8" fill="' + sk.s + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<path d="M30 240C30 192 64 174 100 174s70 18 70 66z" fill="' + ch.shirt + '" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+    '<path d="M82 176Q100 196 118 176" fill="' + sk.s + '" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+    locks +
+    '<ellipse cx="54" cy="113" rx="7" ry="10" fill="' + sk.s + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<ellipse cx="146" cy="113" rx="7" ry="10" fill="' + sk.s + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<ellipse cx="100" cy="106" rx="46" ry="52" fill="' + sk.s + '" stroke="' + INK + '" stroke-width="3"/>' +
+    '<circle cx="68" cy="132" r="7" fill="#FF8FA3" fill-opacity=".45"/><circle cx="132" cy="132" r="7" fill="#FF8FA3" fill-opacity=".45"/>' +
+    '<path d="M68 91Q80 83 92 90M108 90Q120 83 132 91" fill="none" stroke="' + hd + '" stroke-width="4" stroke-linecap="round"/>' +
+    '<g class="eyes">' + eye(80) + eye(120) + '</g>' +
+    nose +
+    '<path d="M82 148Q100 170 118 148z" fill="#fff" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+    glasses + front + (o.extra || '') + '</svg>';
+  return svg;
+}
+
+/* ---------- language helpers ---------- */
+const pr = ch => ch.g === 'f' ? {s:'she', S:'She', P:'Her'} : {s:'he', S:'He', P:'His'};
+const hairPhrase = ch => ch.style === 'curly' ? ch.hair + ' but curly' : ch.style === 'straight' ? ch.hair + ', long and straight' : ch.hair + ' and short';
+const script = ch => { const p = pr(ch); return p.P + ' name is ' + ch.name + '. ' + p.S + ' has ' + ch.eyes + ' eyes and a ' + ch.nose + ' nose. ' + p.P + ' hair is ' + hairPhrase(ch) + (ch.glasses ? ', and ' + p.s + ' wears glasses.' : '. ' + p.S + ' does not wear glasses.'); };
+const describe = ch => { const p = pr(ch); return p.S + ' has ' + ch.eyes + ' eyes and a ' + ch.nose + ' nose. ' + p.P + ' hair is ' + hairPhrase(ch) + '. ' + (ch.glasses ? p.S + ' wears glasses.' : p.S + ' does not wear glasses.'); };
+const styleChip = ch => ch.style === 'curly' ? 'curly hair' : ch.style === 'straight' ? 'long straight hair' : 'short hair';
+const actual = (ch, f) => f === 'color' ? ch.hair : ch[f];
+
+function stmt(ch, f, v) {
+  switch (f) {
+    case 'eyes': return ch.name + ' has ' + v + ' eyes.';
+    case 'color': return ch.name + "'s hair is " + v + '.';
+    case 'style': return v === 'curly' ? ch.name + "'s hair is curly." : v === 'straight' ? ch.name + ' has long straight hair.' : ch.name + ' has short hair.';
+    case 'nose': return ch.name + ' has a ' + v + ' nose.';
+    default: return v ? ch.name + ' wears glasses.' : ch.name + ' does not wear glasses.';
+  }
+}
+function altValue(ch, f) {
+  const v = actual(ch, f);
+  if (f === 'eyes') return pick(['blue', 'brown', 'green'].filter(x => x !== v));
+  if (f === 'color') return pick(['blonde', 'black', 'brown', 'red'].filter(x => x !== v));
+  if (f === 'style') return pick(['curly', 'straight', 'short'].filter(x => x !== v));
+  if (f === 'nose') return v === 'round' ? 'pointed' : 'round';
+  return !v;
+}
+function frame(ch, f) {
+  switch (f) {
+    case 'style': return ch.name + ' has ___ hair.';
+    case 'color': return ch.name + "'s hair is ___.";
+    case 'eyes': return ch.name + ' has ___ eyes.';
+    case 'nose': return ch.name + ' has a ___ nose.';
+    default: return pr(ch).S + ' ___ glasses.';
+  }
+}
+function featOptions(f, ans) {
+  if (f === 'style') return shuffle(['curly', 'straight', 'short']);
+  if (f === 'eyes') return shuffle(['blue', 'brown', 'green']);
+  if (f === 'nose') return shuffle(['pointed', 'round']);
+  if (f === 'glasses') return shuffle(['wears', 'wear', 'is']);
+  return shuffle(shuffle(['blonde', 'black', 'brown', 'red'].filter(x => x !== ans)).slice(0, 2).concat(ans));
+}
+const diff = (a, b) => ['hair', 'style', 'eyes', 'nose', 'glasses'].filter(k => a[k] !== b[k]).length;
+function pickOptions(target) {
+  const others = Object.keys(CHARS).map(k => CHARS[k]).filter(c => c.id !== target.id).sort((a, b) => diff(a, target) - diff(b, target));
+  const pool = shuffle(others.slice(0, 5)).slice(0, 3);
+  return shuffle([target].concat(pool)).map(c => c.id);
+}
+function matchItems(ch) {
+  const hairWord = ch.hair + ' ' + (ch.style === 'curly' ? 'curly' : ch.style === 'straight' ? 'long' : 'short') + ' hair';
+  const it = [{m:'hair', word:hairWord}, {m:'eyes', word:ch.eyes + ' eyes'}, {m:'nose', word:ch.nose + ' nose'}];
+  if (ch.glasses) it.push({m:'glasses', word:'glasses'});
+  return it;
+}
+const MK = {hair:{x:196, y:34, tx:142, ty:62}, eyes:{x:218, y:106, tx:132, ty:108}, nose:{x:-18, y:152, tx:92, ty:132}, glasses:{x:-18, y:88, tx:66, ty:104}};
+const POOL_ADJ = ['blue eyes', 'brown eyes', 'green eyes', 'blonde hair', 'black hair', 'brown hair', 'red hair', 'curly hair', 'long straight hair', 'short hair', 'pointed nose', 'round nose', 'glasses'];
+const PRAISE = ['Great job!', 'Awesome!', 'Well done!', 'Perfect!', 'Super!'];
+
+/* ---------- icons ---------- */
+const I = {
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
+  turtle: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15c0-5 4-8 9-8s9 3 9 8z" fill="currentColor"/><path d="M3 17h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  spk: '<svg class="spk" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  eye: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 24c6-10 14-14 20-14s14 4 20 14c-6 10-14 14-20 14S10 34 4 24z" fill="#fff" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><circle cx="24" cy="24" r="8" fill="currentColor"/><circle cx="27" cy="21" r="2.5" fill="#fff"/></svg>',
+  head: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 28v-4a14 14 0 0 1 28 0v4" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><rect x="6" y="26" width="9" height="14" rx="4" fill="currentColor"/><rect x="33" y="26" width="9" height="14" rx="4" fill="currentColor"/></svg>',
+  noseR: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="6" fill="#E2A57C" stroke="#26304A" stroke-width="2"/></svg>',
+  noseP: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3L5 20q7 4 14 0z" fill="#E2A57C" stroke="#26304A" stroke-width="2" stroke-linejoin="round"/></svg>',
+  glasses: '<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="#26304A" stroke-width="2.2" stroke-linecap="round"><circle cx="7" cy="13" r="4.5"/><circle cx="17" cy="13" r="4.5"/><path d="M11.5 12.5q.5-1 1 0"/></g></svg>',
+  star: on => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="' + (on ? '#FFC83D' : '#fff') + '" stroke="#26304A" stroke-width="1.8" stroke-linejoin="round"/></svg>'
+};
+
+/* ---------- speech + sound ---------- */
+const speech = {
+  ok: ('speechSynthesis' in window) && (typeof SpeechSynthesisUtterance !== 'undefined'),
+  voice: null,
+  timer: null,
+  init() {
+    if (!this.ok) return;
+    const set = () => {
+      const vs = speechSynthesis.getVoices();
+      this.voice = vs.find(v => /^en[-_]US/i.test(v.lang) && /female|samantha|zira|aria|jenny|google us/i.test(v.name)) ||
+                   vs.find(v => /^en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+    };
+    set();
+    try { speechSynthesis.onvoiceschanged = set; } catch (e) {}
+  },
+  say(text, opt) {
+    opt = opt || {};
+    if (!this.ok) return false;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      if (this.voice) u.voice = this.voice;
+      u.rate = opt.slow ? 0.65 : 0.88;
+      u.pitch = 1.05;
+      u.onend = () => { if (opt.onend) opt.onend(); };
+      u.onerror = e => {
+        if (e && (e.error === 'canceled' || e.error === 'interrupted')) return;
+        if (opt.fail) opt.fail();
+        if (opt.onend) opt.onend();
+      };
+      speechSynthesis.speak(u);
+      return true;
+    } catch (e) { return false; }
+  },
+  stop() { try { if (this.ok) speechSynthesis.cancel(); } catch (e) {} }
+};
+speech.init();
+
+let actx = null;
+function tone(freqs, dur) {
+  dur = dur || 0.14;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = actx.currentTime;
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + i * dur);
+      g.gain.exponentialRampToValueAtTime(0.16, t0 + i * dur + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + (i + 1) * dur);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t0 + i * dur); o.stop(t0 + (i + 1) * dur + 0.02);
+    });
+  } catch (e) {}
+}
+const sfx = {good: () => tone([523, 659, 784]), bad: () => tone([220, 175], 0.16)};
+
+/* ---------- game state ---------- */
+const state = {screen:'bank', path:null, levels:[], li:0, ri:0, score:0, log:[], cur:null, fresh:true};
+
+function buildLevels(path) {
+  const ids = Object.keys(CHARS);
+  const others = used => ids.filter(i => used.indexOf(i) < 0);
+  const C = id => CHARS[id];
+  const three = () => { const a = pick(others(['rina'])); const b = pick(others(['rina', a])); return ['rina', a, b]; };
+  if (path === 'audio') {
+    const l1 = three().map(id => ({kind:'choose', target:C(id), options:pickOptions(C(id)), answer:id, script:script(C(id))}));
+    const used = ['rina'];
+    const t2 = pick(others(used)); used.push(t2);
+    const f3 = pick(['color', 'nose', 'glasses']);
+    const pool3 = others(used).filter(i => f3 !== 'glasses' || CHARS[i].glasses);
+    const t3 = pick(pool3);
+    const l2 = [{t:'rina', f:'style'}, {t:t2, f:'eyes'}, {t:t3, f:f3}].map(x => {
+      const ch = C(x.t), ans = x.f === 'glasses' ? 'wears' : actual(ch, x.f);
+      return {kind:'complete', target:ch, feat:x.f, frame:frame(ch, x.f), options:featOptions(x.f, ans), answer:ans, script:script(ch)};
+    });
+    const u2 = ['rina'];
+    const a2 = pick(others(u2)); u2.push(a2);
+    const a3 = pick(others(u2));
+    const mk = (id, feat, makeFalse) => {
+      const ch = C(id), v = actual(ch, feat), shown = makeFalse ? altValue(ch, feat) : v;
+      return {kind:'tf', target:ch, statement:stmt(ch, feat, shown), truth:!makeFalse, fact:stmt(ch, feat, v), script:script(ch)};
+    };
+    const l3 = [mk('rina', 'eyes', true), mk(a2, pick(['eyes', 'color', 'style', 'nose', 'glasses']), false), mk(a3, pick(['eyes', 'color', 'style', 'nose', 'glasses']), Math.random() < 0.5)];
+    return [
+      {id:'choose', title:'Listen and Choose', instr:'Dengarkan audionya, lalu pilih gambar yang paling cocok.', rounds:l1},
+      {id:'complete', title:'Listen and Complete', instr:'Dengarkan lagi, lalu lengkapi kalimatnya dengan kata yang tepat.', rounds:l2},
+      {id:'tf', title:'True or False', instr:'Dengarkan audionya, lalu tentukan: pernyataan ini benar atau salah?', rounds:l3}
+    ];
+  }
+  const v1 = three().map(id => { const ch = C(id); const correct = [ch.eyes + ' eyes', ch.hair + ' hair', styleChip(ch), ch.nose + ' nose'].concat(ch.glasses ? ['glasses'] : []); return {kind:'pick', target:ch, correct:correct, pool:shuffle(POOL_ADJ)}; });
+  const withG = pick(others(['rina']).filter(i => CHARS[i].glasses));
+  const noG = pick(others(['rina', withG]).filter(i => !CHARS[i].glasses));
+  const v2 = ['rina', withG, noG].map(id => {
+    const ch = C(id), items = matchItems(ch);
+    const distract = ch.nose === 'pointed' ? 'round nose' : 'pointed nose';
+    return {kind:'match', target:ch, items:items, words:shuffle(items.map(x => x.word).concat(distract))};
+  });
+  const v3 = three().map(id => ({kind:'who', target:C(id), options:pickOptions(C(id)), answer:id, text:describe(C(id))}));
+  return [
+    {id:'pick', title:'Pick the Adjectives', instr:'Lihat gambarnya, lalu pilih semua kata yang cocok dan tekan Periksa.', rounds:v1},
+    {id:'match', title:'Match Word to Picture', instr:'Ketuk sebuah kata, lalu ketuk huruf pada bagian gambar yang sesuai.', rounds:v2},
+    {id:'who', title:'Who Is It?', instr:'Baca deskripsinya, lalu pilih orang yang dimaksud.', rounds:v3}
+  ];
+}
+
+const curLevel = () => state.levels[state.li];
+const curRound = () => curLevel().rounds[state.ri];
+
+function go(screen) {
+  speech.stop();
+  state.screen = screen;
+  state.fresh = true;
+  render();
+}
+function startPath(p) {
+  state.path = p; state.levels = buildLevels(p);
+  state.li = 0; state.ri = 0; state.score = 0; state.log = [];
+  startRound();
+}
+function startRound() {
+  state.cur = {wrong:0, hint:false, done:false, points:0, praise:'', disabled:[], sel:[], flash:[], assign:{}, locked:{}, word:null, msg:'', picked:null};
+  go('round');
+}
+function award(pts) {
+  const c = state.cur;
+  c.points = pts;
+  c.praise = pick(PRAISE);
+  state.score += pts;
+  state.log.push({li:state.li, pts:pts});
+}
+const calcPts = () => Math.max(2, 10 - 3 * state.cur.wrong - (state.cur.hint ? 2 : 0));
+function next() {
+  const l = curLevel();
+  if (state.ri < l.rounds.length - 1) { state.ri++; startRound(); }
+  else if (state.li < state.levels.length - 1) { state.li++; state.ri = 0; startRound(); }
+  else go('results');
+}
+
+/* ---------- audio playback ---------- */
+function playAudio(slow) {
+  const r = curRound();
+  const row = $('.audio-row');
+  if (!speech.ok) { state.cur.hint = true; render(); return; }
+  if (row) row.classList.add('speaking');
+  clearTimeout(speech.timer);
+  const stopBars = () => { const x = $('.audio-row'); if (x) x.classList.remove('speaking'); };
+  speech.timer = setTimeout(stopBars, Math.round(r.script.length * (slow ? 140 : 95)) + 2500);
+  speech.say(r.script, {slow:slow, onend:stopBars, fail:() => { state.cur.hint = true; state.cur.noVoice = true; render(); }});
+}
+
+/* ---------- screens ---------- */
+const BANK = [
+  {title:'Hair color', kind:'color', words:[['blonde', '#F4C542'], ['black', '#2A2A35'], ['brown', '#7A4B2A'], ['red', '#D2522B']]},
+  {title:'Hair style', kind:'plain', words:[['curly'], ['straight'], ['long'], ['short']]},
+  {title:'Eyes', kind:'color', words:[['blue', '#3C8FE0'], ['brown', '#6A3D1C'], ['green', '#3DAA6A']]},
+  {title:'Nose', kind:'nose', words:[['pointed'], ['round']]},
+  {title:'Other words', kind:'other', words:[['glasses'], ['has'], ['wears']]}
+];
+const FRAMES = ['Her name is Rina. / His name is Dimas.', 'She has blue eyes and a pointed nose.', 'Her hair is blonde but curly.', 'She wears glasses. / He does not wear glasses.'];
+
+function wchip(w, kind) {
+  let ic = '';
+  if (kind === 'color') ic = '<i class="dot" style="background:' + w[1] + '"></i>';
+  else if (kind === 'nose') ic = w[0] === 'round' ? I.noseR : I.noseP;
+  else if (kind === 'other' && w[0] === 'glasses') ic = I.glasses;
+  return '<button class="wchip" data-a="say" data-t="' + esc(w[0]) + '" lang="en">' + ic + '<span>' + esc(w[0]) + '</span>' + I.spk + '</button>';
+}
+
+function screenBank() {
+  const rina = CHARS.rina;
+  const groups = BANK.map(g => '<div class="group"><h3>' + g.title + '</h3><div class="wchips">' + g.words.map(w => wchip(w, g.kind)).join('') + '</div></div>').join('');
+  const frames = FRAMES.map(f => '<button class="frame" data-a="say" data-t="' + esc(f.split(' / ')[0]) + '" lang="en"><span>' + esc(f) + '</span>' + I.spk + '</button>').join('');
+  return '<section class="card hero">' +
+    '<div class="mascot"><div class="bubble">Hi, I\'m Rina! Pelajari kata-kata ini dulu, ya.</div><div class="portrait bob" style="--bg:' + rina.bg + '">' + portrait(rina, {label:'Rina, maskot permainan'}) + '</div></div>' +
+    '<div class="bank"><div><p class="eyebrow">Langkah 1 dari 2</p><h1>Word Bank</h1></div>' +
+    '<p class="lead">Kenalan dengan tetangga kartun di Describe Town. Ketuk kata untuk mendengar cara membacanya, lalu pakai di permainan.</p>' +
+    groups + '<div class="frames"><h3>Contoh kalimat</h3>' + frames + '</div>' +
+    '<div class="actions"><button class="btn big" data-a="paths">Aku siap, lanjut</button></div></div></section>';
+}
+
+function screenPaths() {
+  return '<section class="card"><div class="paths-head"><p class="eyebrow">Langkah 2 dari 2</p><h1>Pilih jalur belajarmu</h1><p class="lead">Kamu belajar paling mudah dengan cara apa? Pilih satu. Kamu bisa ganti jalur kapan saja.</p></div>' +
+    '<div class="paths">' +
+    '<button class="pathcard visual" data-a="startPath" data-p="visual"><span class="ico">' + I.eye + '</span><h3>Visual</h3><ul><li>Melihat gambar dan warna</li><li>Memilih kata yang cocok</li><li>Menjodohkan kata dengan gambar</li></ul><span class="btn go">Main lewat gambar</span></button>' +
+    '<button class="pathcard audio" data-a="startPath" data-p="audio"><span class="ico">' + I.head + '</span><h3>Audio</h3><ul><li>Mendengarkan deskripsi</li><li>Melengkapi kalimat</li><li>Menilai benar atau salah</li></ul><span class="btn go">Main lewat suara</span></button>' +
+    '</div><div class="actions" style="margin-top:16px"><button class="btn ghost small" data-a="bank">Kembali ke Word Bank</button></div></section>';
+}
+
+function lvlbar() {
+  const l = curLevel();
+  const total = state.levels.reduce((n, x) => n + x.rounds.length, 0);
+  const done = state.levels.slice(0, state.li).reduce((n, x) => n + x.rounds.length, 0) + state.ri;
+  let pips = '';
+  for (let i = 0; i < total; i++) pips += '<i class="' + (i < done ? 'on' : i === done ? 'cur' : '') + '"></i>';
+  return '<div class="lvlbar"><div><span class="tag ' + state.path + '">Level ' + (state.li + 1) + '</span><b>' + l.title + '</b></div><div class="rc">Soal ' + (state.ri + 1) + ' dari ' + l.rounds.length + '</div></div>' +
+    '<div class="pips" aria-hidden="true">' + pips + '</div><p class="instr">' + l.instr + '</p>';
+}
+function audioRow(r) {
+  const c = state.cur;
+  const show = c.hint || c.done || !speech.ok;
+  const note = (!speech.ok || c.noVoice) ? ' (suara tidak tersedia di perangkat ini)' : '';
+  return '<div class="audio-row"><button class="btn big" data-a="play">' + I.play + '<span>Putar audio</span></button>' +
+    '<button class="btn ghost" data-a="slow">' + I.turtle + '<span>Putar pelan</span></button>' +
+    '<button class="btn ghost" data-a="hint"' + (show ? ' disabled' : '') + '>Bantuan teks</button>' +
+    '<span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span></div>' +
+    (show ? '<div class="transcript"><b>Teks audio' + note + '</b><p lang="en">' + esc(r.script) + '</p></div>' : '');
+}
+function feedback(extra) {
+  const c = state.cur;
+  if (c.done) return '<div class="feedback good" role="status"><b>' + c.praise + '</b> ' + (extra || '') + '<span class="pts">+' + c.points + ' poin</span></div>';
+  if (c.msg) return '<div class="feedback info" role="status">' + esc(c.msg) + '</div>';
+  if (c.wrong > 0) return '<div class="feedback bad" role="status">Belum tepat. Coba lagi!</div>';
+  return '';
+}
+function nextBtn() {
+  if (!state.cur.done) return '';
+  const last = state.li === state.levels.length - 1 && state.ri === curLevel().rounds.length - 1;
+  return '<div class="actions"><button class="btn big" data-a="next">' + (last ? 'Lihat skor' : 'Soal berikutnya') + '</button></div>';
+}
+function picOptions(r) {
+  const c = state.cur;
+  return '<div class="grid4">' + r.options.map((id, i) => {
+    const ch = CHARS[id], bad = c.disabled.indexOf(id) >= 0, good = c.done && id === r.answer;
+    return '<button class="opt' + (bad ? ' bad' : '') + (good ? ' good' : '') + '" data-a="opt" data-v="' + id + '"' + (bad || c.done ? ' disabled' : '') + ' aria-label="Pilihan ' + (i + 1) + '">' +
+      '<div class="portrait" style="--bg:' + ch.bg + '">' + portrait(ch, {label:'Pilihan ' + (i + 1)}) + '</div><span class="nm">' + (c.done ? esc(ch.name) : '') + '</span></button>';
+  }).join('') + '</div>';
+}
+
+function roundChoose(r) {
+  return audioRow(r) + picOptions(r) + feedback('Yes, itu ' + esc(r.target.name) + '!') + nextBtn();
+}
+function roundComplete(r) {
+  const c = state.cur, ch = r.target, parts = r.frame.split('___');
+  const choices = r.options.map(o => {
+    const bad = c.disabled.indexOf(o) >= 0, good = c.done && o === r.answer;
+    return '<button class="chip big' + (bad ? ' bad' : '') + (good ? ' good' : '') + '" data-a="opt" data-v="' + esc(o) + '"' + (bad || c.done ? ' disabled' : '') + ' lang="en">' + esc(o) + '</button>';
+  }).join('');
+  return audioRow(r) +
+    '<div class="duo"><div class="mystery"><div class="portrait' + (c.done ? '' : ' sil') + '" style="--bg:' + ch.bg + '">' + portrait(ch, {label:'Tetangga misterius'}) + '</div><div class="nm big">' + esc(ch.name) + '</div></div>' +
+    '<div class="side"><p class="sentence" lang="en">' + esc(parts[0]) + '<span class="blank' + (c.done ? ' filled' : '') + '">' + (c.done ? esc(r.answer) : '&nbsp;') + '</span>' + esc(parts[1]) + '</p>' +
+    '<div class="choices">' + choices + '</div></div></div>' +
+    feedback('Kalimat lengkap: ' + esc(r.frame.replace('___', r.answer))) + nextBtn();
+}
+function roundTF(r) {
+  const c = state.cur, ch = r.target;
+  const btn = (v, label) => {
+    const chosen = c.picked === v, right = c.done && r.truth === v;
+    return '<button class="chip big' + (right ? ' good' : '') + (chosen && !right ? ' bad' : '') + '" data-a="tf" data-v="' + v + '"' + (c.done ? ' disabled' : '') + '>' + label + '</button>';
+  };
+  let fb = '';
+  if (c.done) {
+    const ok = c.picked === r.truth;
+    fb = ok ? feedback('Jawabannya ' + (r.truth ? 'True' : 'False') + '.')
+            : '<div class="feedback bad" role="status"><b>Belum tepat.</b> Jawabannya ' + (r.truth ? 'True' : 'False') + '. ' + esc(r.fact) + '<span class="pts">+0 poin</span></div>';
+  }
+  return audioRow(r) +
+    '<div class="duo"><div class="mystery"><div class="portrait' + (c.done ? '' : ' sil') + '" style="--bg:' + ch.bg + '">' + portrait(ch, {label:'Tetangga misterius'}) + '</div><div class="nm big">' + esc(ch.name) + '</div></div>' +
+    '<div class="side"><p class="statement" lang="en">' + esc(r.statement) + '</p><div class="choices">' + btn(true, 'True') + btn(false, 'False') + '</div></div></div>' +
+    fb + nextBtn();
+}
+function roundPick(r) {
+  const c = state.cur, ch = r.target;
+  const chips = r.pool.map(w => {
+    const on = c.sel.indexOf(w) >= 0, ok = c.done && r.correct.indexOf(w) >= 0, no = c.flash.indexOf(w) >= 0;
+    return '<button class="chip' + (on ? ' sel' : '') + (ok ? ' ok' : '') + (no ? ' no' : '') + '" data-a="chip" data-v="' + esc(w) + '" aria-pressed="' + on + '"' + (c.done ? ' disabled' : '') + ' lang="en">' + esc(w) + '</button>';
+  }).join('');
+  return '<div class="split"><div class="portrait" style="--bg:' + ch.bg + '">' + portrait(ch, {label:'Karakter yang harus dideskripsikan'}) + '</div>' +
+    '<div class="col"><span class="label">Pilih semua yang cocok</span><div class="pool">' + chips + '</div>' +
+    '<div class="actions"><button class="btn mint" data-a="checkPick"' + (c.done || !c.sel.length ? ' disabled' : '') + '>Periksa</button></div>' +
+    feedback('Deskripsi lengkap: ' + esc(describe(ch))) + nextBtn() + '</div></div>';
+}
+function roundMatch(r) {
+  const c = state.cur, ch = r.target, L = 'ABCD';
+  const marks = r.items.map((it, i) => {
+    const p = MK[it.m], cls = (c.assign[it.m] ? ' set' : '') + (c.locked[it.m] ? ' ok' : '') + (c.flash.indexOf(it.m) >= 0 ? ' no' : '');
+    return '<g class="mk' + cls + '" data-a="marker" data-m="' + it.m + '" tabindex="0" role="button" aria-label="Bagian ' + L[i] + '">' +
+      '<line x1="' + p.tx + '" y1="' + p.ty + '" x2="' + p.x + '" y2="' + p.y + '"/><circle class="pt" cx="' + p.tx + '" cy="' + p.ty + '" r="4"/>' +
+      '<circle class="bubble" cx="' + p.x + '" cy="' + p.y + '" r="15"/><text x="' + p.x + '" y="' + p.y + '" dy=".36em" text-anchor="middle">' + L[i] + '</text></g>';
+  }).join('');
+  const used = Object.keys(c.assign).map(k => c.assign[k]);
+  const tray = r.words.filter(w => used.indexOf(w) < 0).map(w => '<button class="chip' + (c.word === w ? ' sel' : '') + '" data-a="mword" data-v="' + esc(w) + '"' + (c.done ? ' disabled' : '') + ' aria-pressed="' + (c.word === w) + '" lang="en">' + esc(w) + '</button>').join('');
+  const slots = r.items.map((it, i) => {
+    const w = c.assign[it.m], cls = (w ? ' filled' : '') + (c.locked[it.m] ? ' ok' : '') + (c.flash.indexOf(it.m) >= 0 ? ' no' : '');
+    return '<button class="slot' + cls + '" data-a="marker" data-m="' + it.m + '"' + (c.locked[it.m] || c.done ? ' disabled' : '') + '><b>' + L[i] + '</b><span lang="en">' + (w ? esc(w) : 'ketuk kata lalu ketuk huruf ' + L[i]) + '</span></button>';
+  }).join('');
+  const full = Object.keys(c.assign).length === r.items.length;
+  return '<div class="split"><div class="portrait" style="--bg:' + ch.bg + '">' + portrait(ch, {ext:true, extra:marks, label:'Karakter dengan penanda huruf'}) + '</div>' +
+    '<div class="col"><span class="label">Kata</span><div class="pool">' + (tray || '<span class="lead">Semua kata sudah dipasang.</span>') + '</div>' +
+    '<span class="label">Bagian gambar</span><div class="slots">' + slots + '</div>' +
+    '<div class="actions"><button class="btn mint" data-a="checkMatch"' + (c.done || !full ? ' disabled' : '') + '>Periksa</button></div>' +
+    feedback('Semua pasangan benar!') + nextBtn() + '</div></div>';
+}
+function roundWho(r) {
+  return '<p class="clue" lang="en">' + esc(r.text) + '</p>' + picOptions(r) + feedback('Yes, itu ' + esc(r.target.name) + '!') + nextBtn();
+}
+
+function screenRound() {
+  const r = curRound();
+  const body = {choose:roundChoose, complete:roundComplete, tf:roundTF, pick:roundPick, match:roundMatch, who:roundWho}[r.kind](r);
+  return '<section class="card round">' + lvlbar() + body + '</section>';
+}
+
+function screenResults() {
+  const max = state.levels.reduce((n, l) => n + l.rounds.length * 10, 0);
+  const pct = state.score / max;
+  const stars = pct >= 0.75 ? 3 : pct >= 0.5 ? 2 : 1;
+  const msg = stars === 3 ? 'Super! Kamu jago mendeskripsikan orang.' : stars === 2 ? 'Bagus! Sedikit latihan lagi pasti sempurna.' : 'Kerja bagus sudah mencoba. Yuk main lagi!';
+  const rows = state.levels.map((l, i) => {
+    const pts = state.log.filter(x => x.li === i).reduce((n, x) => n + x.pts, 0);
+    return '<li><span>Level ' + (i + 1) + ' · ' + l.title + '</span><b>' + pts + '/' + l.rounds.length * 10 + '</b></li>';
+  }).join('');
+  const other = state.path === 'visual' ? 'audio' : 'visual';
+  let st = '';
+  for (let i = 0; i < 3; i++) st += I.star(i < stars);
+  return '<section class="card results"><p class="eyebrow">Jalur ' + (state.path === 'visual' ? 'Visual' : 'Audio') + ' selesai</p><h1>' + msg + '</h1>' +
+    '<div class="stars" role="img" aria-label="' + stars + ' dari 3 bintang">' + st + '</div>' +
+    '<div class="big-score">' + state.score + '<span class="lead" style="font-size:1.4rem"> / ' + max + '</span></div>' +
+    '<ul class="break">' + rows + '</ul>' +
+    '<div class="actions"><button class="btn big" data-a="startPath" data-p="' + other + '">Coba jalur ' + (other === 'visual' ? 'Visual' : 'Audio') + '</button>' +
+    '<button class="btn big ghost" data-a="startPath" data-p="' + state.path + '">Main lagi</button>' +
+    '<button class="btn ghost" data-a="bank">Lihat Word Bank</button></div></section>';
+}
+
+function render() {
+  const html = {bank:screenBank, paths:screenPaths, round:screenRound, results:screenResults}[state.screen]();
+  $('#stage').innerHTML = html;
+  $('#scoreNum').textContent = state.score;
+  const inGame = state.screen === 'round' || state.screen === 'results';
+  $('#scorePill').hidden = !inGame;
+  $('#swapBtn').hidden = state.screen !== 'round';
+  if (state.fresh) {
+    state.fresh = false;
+    window.scrollTo(0, 0);
+    if (state.screen === 'round') {
+      const k = curRound().kind;
+      if ((k === 'choose' || k === 'complete' || k === 'tf') && speech.ok) playAudio(false);
+    }
+  }
+}
+
+/* ---------- interactions ---------- */
+function answerOption(v) {
+  const r = curRound(), c = state.cur;
+  if (c.done || c.disabled.indexOf(v) >= 0) return;
+  c.msg = '';
+  if (v === r.answer) { c.done = true; award(calcPts()); sfx.good(); }
+  else { c.wrong++; c.disabled.push(v); sfx.bad(); }
+  render();
+}
+function answerTF(v) {
+  const r = curRound(), c = state.cur;
+  if (c.done) return;
+  c.picked = v; c.done = true;
+  const ok = v === r.truth;
+  if (ok) { award(Math.max(6, 10 - (c.hint ? 2 : 0))); sfx.good(); }
+  else { c.points = 0; c.praise = ''; state.log.push({li:state.li, pts:0}); sfx.bad(); }
+  render();
+}
+function toggleChip(w) {
+  const c = state.cur;
+  if (c.done) return;
+  c.flash = []; c.msg = '';
+  const i = c.sel.indexOf(w);
+  if (i >= 0) c.sel.splice(i, 1); else c.sel.push(w);
+  render();
+}
+function checkPick() {
+  const r = curRound(), c = state.cur;
+  if (c.done) return;
+  const wrongSel = c.sel.filter(w => r.correct.indexOf(w) < 0);
+  const right = c.sel.filter(w => r.correct.indexOf(w) >= 0);
+  c.flash = []; c.msg = '';
+  if (wrongSel.length) {
+    c.wrong++; c.flash = wrongSel.slice(); c.sel = right; sfx.bad();
+    c.msg = 'Ada kata yang belum cocok dengan gambar. Kata yang benar tetap terpilih, coba lagi.';
+  } else if (right.length < r.correct.length) {
+    c.msg = 'Bagus, semua pilihanmu benar. Masih ada ' + (r.correct.length - right.length) + ' kata lagi yang cocok.';
+  } else { c.done = true; award(calcPts()); sfx.good(); }
+  render();
+}
+function wordClick(w) {
+  const c = state.cur;
+  if (c.done) return;
+  c.flash = []; c.msg = '';
+  c.word = c.word === w ? null : w;
+  render();
+}
+function markerClick(m) {
+  const c = state.cur;
+  if (c.done || c.locked[m]) return;
+  c.flash = []; c.msg = '';
+  if (c.word) {
+    Object.keys(c.assign).forEach(k => { if (c.assign[k] === c.word && !c.locked[k]) delete c.assign[k]; });
+    c.assign[m] = c.word; c.word = null;
+  } else if (c.assign[m]) {
+    delete c.assign[m];
+  }
+  render();
+}
+function checkMatch() {
+  const r = curRound(), c = state.cur;
+  if (c.done) return;
+  c.flash = []; c.msg = '';
+  const wrongs = r.items.filter(it => c.assign[it.m] !== it.word && !c.locked[it.m]);
+  r.items.forEach(it => { if (c.assign[it.m] === it.word) c.locked[it.m] = true; });
+  if (wrongs.length) {
+    c.wrong++; c.flash = wrongs.map(x => x.m);
+    wrongs.forEach(x => { delete c.assign[x.m]; });
+    sfx.bad();
+    c.msg = 'Ada pasangan yang belum tepat. Kata yang salah dikembalikan, coba lagi.';
+  } else { c.done = true; award(calcPts()); sfx.good(); }
+  render();
+}
+
+function act(a, t) {
+  switch (a) {
+    case 'say': speech.say(t.dataset.t); break;
+    case 'bank': go('bank'); break;
+    case 'paths': go('paths'); break;
+    case 'startPath': startPath(t.dataset.p); break;
+    case 'play': playAudio(false); break;
+    case 'slow': playAudio(true); break;
+    case 'hint': state.cur.hint = true; render(); break;
+    case 'opt': answerOption(t.dataset.v); break;
+    case 'tf': answerTF(t.dataset.v === 'true'); break;
+    case 'chip': toggleChip(t.dataset.v); break;
+    case 'checkPick': checkPick(); break;
+    case 'mword': wordClick(t.dataset.v); break;
+    case 'marker': markerClick(t.dataset.m); break;
+    case 'checkMatch': checkMatch(); break;
+    case 'next': next(); break;
+  }
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest ? e.target.closest('[data-a]') : null;
+  if (!t || t.disabled) return;
+  act(t.dataset.a, t);
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('g[data-m]')) {
+    e.preventDefault();
+    act('marker', e.target);
+  }
+});
+
+render();
+})();
+</script>
+
+</body></html>
